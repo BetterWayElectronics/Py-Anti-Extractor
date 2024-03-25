@@ -5,5 +5,5 @@ Reads Python applications compiled with Pyinstaller and edits them in a manner t
 
 The extraction is stopped by corrupting the table of contents, thus when using a decompiler like Pyinstxtractor for example it will throw a 'ValueError: embedded null character' error.
 
-This is not a fool proof method of protecting your PYC file, but will be sufficient enough to stop most novice users. 
+This is not a fool proof method in any way shape or form, but it is an interesting concept to annoy Pyinstaller users/abusers.
 
