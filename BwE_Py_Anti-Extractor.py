@@ -3,13 +3,10 @@ import re
 import random
 import sys  
 from colorama import init, Fore, Style, Back
-
-
+import ctypes
 
 # Initialize Colorama
 init(autoreset=True)
-
-import ctypes
 
 def set_window_title(title):
     # Encode the title to ANSI
@@ -25,7 +22,7 @@ def print_banner():
     print(Fore.CYAN + ":" + Fore.WHITE + "             |    |  _//  \\/ \\/  /|  __)_                " + Fore.CYAN + ":")
     print(Fore.CYAN + "." + Fore.WHITE + "             |    |   \\\\        //       \\               " + Fore.CYAN + ".")
     print(Fore.CYAN + ":" + Fore.WHITE + "  (\\_/)      |______  / \\__/\\__//______  /               " + Fore.CYAN + ":")
-    print(Fore.CYAN + "|" + Fore.WHITE + " ( x_x)             \\/" + Fore.CYAN + "Py Anti-Extractor" + Fore.WHITE + "\\/0.0.4           " + Fore.CYAN + "|")
+    print(Fore.CYAN + "|" + Fore.WHITE + " ( x_x)             \\/" + Fore.CYAN + "Py Anti-Extractor" + Fore.WHITE + "\\/0.0.5           " + Fore.CYAN + "|")
     print(Fore.CYAN + "|" + Fore.WHITE + " (>  >)                                                  " + Fore.CYAN + "|")
     print(Fore.CYAN + "*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*\n")
 
@@ -50,7 +47,7 @@ def search_and_replace(filename):
     with open(filename, 'rb') as file:
         data = file.read()
         search_str = find_search_string(data)
-        print(filename)
+        print(f"\n{filename}")
 
         if search_str:
             print(f"\nFound Python App Name: {search_str}")
@@ -75,19 +72,22 @@ def search_and_replace(filename):
                 print("\nFound Patchable Offsets:")
                 for i, offset in enumerate(found_offsets):
                     print(f"{i + 1}. Offset: 0x{offset:08X}")
-                selected_offset = int(input("\nSelect Offset To Patch: ")) - 1
+                
+                # Auto-select if only one patchable offset is found
+                if len(found_offsets) == 1:
+                    print(Fore.CYAN + "\nOnly One Patchable Offset Found. Auto-Selecting It." + Style.RESET_ALL)
+                    selected_index = 0
+                else:
+                    selected_index = int(input("\nSelect Offset To Patch: ")) - 1
 
-                selected_offset = found_offsets[selected_offset]
-                print(f"Selected Offset: 0x{selected_offset:08X}")
+                selected_offset = found_offsets[selected_index]
+                print(f"\nSelected Offset: 0x{selected_offset:08X}")
 
                 length_hex = format(len(ascii_search), 'X')
-
                 new_hex = '00 08 ' + ' '.join([format(random.randint(0, 31), '02X') for _ in range(0, len(ascii_search) - 2)])
-
                 modified_data = data[:selected_offset] + bytes.fromhex(new_hex) + data[selected_offset + len(ascii_search):]
 
                 backup_filename = filename.replace('.exe', '_backup.exe')
-
                 print(Fore.YELLOW + "Modified Data: " + new_hex + Style.RESET_ALL)
 
                 # Create a backup of the original file
@@ -98,8 +98,8 @@ def search_and_replace(filename):
                 with open(filename, 'wb') as original_file:
                     original_file.write(modified_data)
 
-                print("Original Program Backed Up As: " + backup_filename)
-                print(Fore.GREEN + "File Patched Successfully!" + Style.RESET_ALL)
+                print("\nOriginal Program Backed Up As: " + backup_filename)
+                print(Fore.GREEN + "\nFile Patched Successfully!" + Style.RESET_ALL)
 
             else:
                 print("{0:60}".format(Fore.RED + "\nNo Suitable Offset Found\n" + Style.RESET_ALL),'\r', end=' ')
@@ -113,13 +113,16 @@ def search_and_replace(filename):
 exe_files = [file for file in os.listdir() if file.endswith('.exe')]
 if not exe_files:
     print("No Programs Found In Current Directory!")
+elif len(exe_files) == 1:
+    selected_file = exe_files[0]
+    print(Fore.CYAN + f"Only One Executable Found. Auto-Selecting It." + Style.RESET_ALL)
+    search_and_replace(selected_file)
 else:
     print("Executables Found:\n")
     for i, exe_file in enumerate(exe_files):
         print(f"{i + 1}. {exe_file}")
 
     choice = input("\nSelect Executable To Patch: ")
-
     try:
         choice = int(choice)
         if 1 <= choice <= len(exe_files):
